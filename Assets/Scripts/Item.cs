@@ -22,7 +22,6 @@ public class Item : MonoBehaviour
 
     private void OnCullStateChange(bool cullState)
     {
-        Debug.Log($"Cull state for {_itemId} changed to {cullState}");
         if (Constants.ShouldCasheSprites && GameSessionData.CashedSprites != null
                                          && GameSessionData.CashedSprites[_itemId] != null)
         {
@@ -31,19 +30,27 @@ public class Item : MonoBehaviour
         }
         else
         {
-            if (!cullState && !_isImageLoaded)
+            if (!cullState)
             {
-                StartCoroutine(LoadImageCo());
+                LoadImage();
             }
         }
     }
 
-    public void SetItem(int itemId)
+    public void SetItemId(int itemId)
     {
         _itemId = itemId;
         _maskableGraphic.onCullStateChanged.AddListener(OnCullStateChange);
     }
 
+    public void LoadImage()
+    {
+        if (!_isImageLoaded)
+        {
+            StartCoroutine(LoadImageCo());
+        }
+    }
+    
     private IEnumerator LoadImageCo()
     {
         // UnityWebRequest request = UnityWebRequestTexture.GetTexture(string.Format(ImagesData.DownloadUrl, (_itemId + 1).ToString()));

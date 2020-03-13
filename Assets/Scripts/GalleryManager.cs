@@ -24,13 +24,26 @@ public class GalleryManager : MonoBehaviour
 
     private void InstantiateItems()
     {
+        int visibleItemsCount = GetVisibleItemsCount();
         for (int i = 0; i < Constants.ImagesCount; i++)
         {
             var item = Instantiate(itemPrefab, _scrollRect.content, false);
-            item.SetItem(i);
+            item.SetItemId(i);
+
+            if (i < visibleItemsCount)
+            {
+                item.LoadImage();
+            }
         }
     }
 
+    private int GetVisibleItemsCount()
+    {
+        var gridLayout = _scrollRect.content.GetComponent<GridLayoutGroup>();
+        float itemsCount = (_scrollRect.viewport.rect.height - gridLayout.padding.top) /
+                           (gridLayout.cellSize.y + gridLayout.spacing.y);
+        return Mathf.CeilToInt(itemsCount);
+    }
 
     private void SetScrollViewPosition()
     {
