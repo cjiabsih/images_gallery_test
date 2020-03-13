@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using DefaultNamespace;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -11,6 +12,8 @@ public class Item : MonoBehaviour
     public TextMeshProUGUI loadingText;
     public Image loadedImage;
 
+    private Button _button;
+
     private int _itemId;
     private bool _isImageLoaded;
     private MaskableGraphic _maskableGraphic;
@@ -18,12 +21,13 @@ public class Item : MonoBehaviour
     private void Awake()
     {
         _maskableGraphic = GetComponent<MaskableGraphic>();
+        _button = GetComponent<Button>();
     }
 
     private void OnCullStateChange(bool cullState)
     {
-        if (Constants.ShouldCasheSprites && GameSessionData.CashedSprites != null
-                                         && GameSessionData.CashedSprites[_itemId] != null)
+        if (GameSessionData.CashedSprites != null
+            && GameSessionData.CashedSprites[_itemId] != null)
         {
             loadedImage.sprite = GameSessionData.CashedSprites[_itemId];
             loadingText.enabled = false;
@@ -37,10 +41,24 @@ public class Item : MonoBehaviour
         }
     }
 
-    public void SetItemId(int itemId)
+    public void SetItemId(int itemId, Action<int> onButtonClick)
     {
         _itemId = itemId;
         _maskableGraphic.onCullStateChanged.AddListener(OnCullStateChange);
+
+        _button.onClick.AddListener(() =>
+        {
+            if (_isImageLoaded)
+            {
+                onButtonClick(_itemId);
+            }
+            else
+            {
+                DOTween.Kill(loadingText);
+                loadingText.transform.DOScale(Vector3.one * 1.25f, 0.25f)
+                    .OnComplete(() => { loadingText.transform.DOScale(Vector3.one, 0.25f); });
+            }
+        });
     }
 
     public void LoadImage()
@@ -50,7 +68,7 @@ public class Item : MonoBehaviour
             StartCoroutine(LoadImageCo());
         }
     }
-    
+
     private IEnumerator LoadImageCo()
     {
         // UnityWebRequest request = UnityWebRequestTexture.GetTexture(string.Format(ImagesData.DownloadUrl, (_itemId + 1).ToString()));
@@ -79,6 +97,7 @@ public class Item : MonoBehaviour
 
     private void OnDisable()
     {
+        DOTween.Kill(loadingText);
         _maskableGraphic.onCullStateChanged.RemoveAllListeners();
     }
 }

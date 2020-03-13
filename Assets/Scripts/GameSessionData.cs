@@ -6,5 +6,6 @@ namespace DefaultNamespace
     {
         public static Sprite[] CashedSprites;
         public static Vector2 ScrollViewAnchoredPosition = Vector2.zero;
+        public static int SingleImageId;
     }
 }
