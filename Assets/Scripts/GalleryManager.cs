@@ -37,8 +37,12 @@ public class GalleryManager : MonoBehaviour
     private int GetVisibleItemsCount()
     {
         var gridLayout = _scrollRect.content.GetComponent<GridLayoutGroup>();
-        int itemsInColumn = Mathf.CeilToInt((_scrollRect.viewport.rect.height - gridLayout.padding.top) /
-                                              (gridLayout.cellSize.y + gridLayout.spacing.y));
+        
+        float availableHeight = _scrollRect.viewport.rect.height - gridLayout.padding.top +
+                                Mathf.Max(_scrollRect.content.anchoredPosition.y, 0);
+        float itemHeight = gridLayout.cellSize.y + gridLayout.spacing.y;
+        int itemsInColumn = Mathf.CeilToInt(availableHeight / itemHeight);
+        
         return itemsInColumn * gridLayout.constraintCount;
     }
 
