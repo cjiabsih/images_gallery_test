@@ -10,7 +10,7 @@ using UnityEngine.UI;
 public class Item : MonoBehaviour
 {
     public TextMeshProUGUI loadingText;
-    public Image loadedImage;
+    public RawImage loadedImage;
 
     private Button _button;
 
@@ -26,18 +26,9 @@ public class Item : MonoBehaviour
 
     private void OnCullStateChange(bool cullState)
     {
-        if (GameSessionData.CashedSprites != null
-            && GameSessionData.CashedSprites[_itemId] != null)
+        if (!cullState)
         {
-            loadedImage.sprite = GameSessionData.CashedSprites[_itemId];
-            loadingText.enabled = false;
-        }
-        else
-        {
-            if (!cullState)
-            {
-                LoadImage();
-            }
+            LoadImage();
         }
     }
 
@@ -63,7 +54,16 @@ public class Item : MonoBehaviour
 
     public void LoadImage()
     {
-        if (!_isImageLoaded)
+        if (_isImageLoaded) return;
+
+        if (GameSessionData.CashedTextures != null
+            && GameSessionData.CashedTextures[_itemId] != null)
+        {
+            loadedImage.texture = GameSessionData.CashedTextures[_itemId];
+            loadingText.enabled = false;
+            _isImageLoaded = true;
+        }
+        else
         {
             StartCoroutine(LoadImageCo());
         }
@@ -71,33 +71,38 @@ public class Item : MonoBehaviour
 
     private IEnumerator LoadImageCo()
     {
-        // UnityWebRequest request = UnityWebRequestTexture.GetTexture(string.Format(ImagesData.DownloadUrl, (_itemId + 1).ToString()));
-        // yield return request.SendWebRequest();
-        // if (request.isNetworkError || request.isHttpError)
-        // {
-        //     Debug.Log(request.error);
-        // }
-        // else
-        // {
-        //     Texture2D texture = ((DownloadHandlerTexture) request.downloadHandler).texture;
-        //     var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.one * 0.5f);
-        //     loadedImage.sprite = sprite;
-        //
-        //     loadingText.enabled = false;
-        // }
-        yield return null;
-        Debug.Log($"Load {_itemId}");
-        // if (Constants.ShouldCasheSprites)
-        // {
-        //     GameSessionData.CashedSprites[_itemId] = sprite;
-        // }
+        UnityWebRequest request =
+            UnityWebRequestTexture.GetTexture(string.Format(Constants.DownloadUrl, (_itemId + 1).ToString()));
+        yield return request.SendWebRequest();
+        if (request.isNetworkError || request.isHttpError)
+        {
+            Debug.Log(request.error);
+        }
+        else
+        {
+            GameSessionData.CashedTextures[_itemId] = DownloadHandlerTexture.GetContent(request);
+            request.disposeDownloadHandlerOnDispose = false;
+        
+            loadedImage.texture = GameSessionData.CashedTextures[_itemId];
+            loadingText.enabled = false;
+        }
+        
         _isImageLoaded = true;
         _maskableGraphic.onCullStateChanged.RemoveListener(OnCullStateChange);
+        request.Dispose();
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
         DOTween.Kill(loadingText);
         _maskableGraphic.onCullStateChanged.RemoveAllListeners();
+        _maskableGraphic = null;
     }
+
+#if UNITY_EDITOR
+    private void OnDisable()
+    {
+        _maskableGraphic.onCullStateChanged.RemoveAllListeners();
+    }
+#endif
 }

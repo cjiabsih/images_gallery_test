@@ -9,14 +9,20 @@ public class GalleryManager : MonoBehaviour
 
     private void Awake()
     {
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
+        Application.targetFrameRate = 60;
+        
         _scrollRect = GetComponent<ScrollRect>();
-        GameSessionData.CashedSprites = new Sprite[Constants.ImagesCount];
+        if (GameSessionData.CashedTextures == null)
+        {
+            GameSessionData.CashedTextures = new Texture2D[Constants.ImagesCount];
+        }
     }
 
     private void Start()
     {
-        InstantiateItems();
         SetScrollViewPosition();
+        InstantiateItems();
     }
 
     private void InstantiateItems()
@@ -37,12 +43,12 @@ public class GalleryManager : MonoBehaviour
     private int GetVisibleItemsCount()
     {
         var gridLayout = _scrollRect.content.GetComponent<GridLayoutGroup>();
-        
+
         float availableHeight = _scrollRect.viewport.rect.height - gridLayout.padding.top +
                                 Mathf.Max(_scrollRect.content.anchoredPosition.y, 0);
         float itemHeight = gridLayout.cellSize.y + gridLayout.spacing.y;
         int itemsInColumn = Mathf.CeilToInt(availableHeight / itemHeight);
-        
+
         return itemsInColumn * gridLayout.constraintCount;
     }
 
@@ -53,8 +59,9 @@ public class GalleryManager : MonoBehaviour
 
     private void OnImageButtonClick(int imageId)
     {
-        Debug.Log(imageId);
         GameSessionData.SingleImageId = imageId;
+        GameSessionData.ScrollViewAnchoredPosition = _scrollRect.content.anchoredPosition;
+
         SceneUtils.LoadSingleImageScene();
     }
 }
