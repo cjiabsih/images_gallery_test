@@ -24,6 +24,27 @@ public class Item : MonoBehaviour
         _button = GetComponent<Button>();
     }
 
+    private void OnEnable()
+    {
+        if (!_isImageLoaded)
+        {
+            _maskableGraphic.onCullStateChanged.AddListener(OnCullStateChange);
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (!_isImageLoaded)
+        {
+            _maskableGraphic.onCullStateChanged.RemoveListener(OnCullStateChange);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        _button.onClick.RemoveAllListeners();
+    }
+
     private void OnCullStateChange(bool cullState)
     {
         if (!cullState)
@@ -35,7 +56,6 @@ public class Item : MonoBehaviour
     public void SetItemId(int itemId, Action<int> onButtonClick)
     {
         _itemId = itemId;
-        _maskableGraphic.onCullStateChanged.AddListener(OnCullStateChange);
 
         _button.onClick.AddListener(() =>
         {
@@ -82,27 +102,13 @@ public class Item : MonoBehaviour
         {
             GameSessionData.CashedTextures[_itemId] = DownloadHandlerTexture.GetContent(request);
             request.disposeDownloadHandlerOnDispose = false;
-        
+
             loadedImage.texture = GameSessionData.CashedTextures[_itemId];
             loadingText.enabled = false;
         }
-        
+
         _isImageLoaded = true;
         _maskableGraphic.onCullStateChanged.RemoveListener(OnCullStateChange);
         request.Dispose();
     }
-
-    private void OnDestroy()
-    {
-        DOTween.Kill(loadingText);
-        _maskableGraphic.onCullStateChanged.RemoveAllListeners();
-        _maskableGraphic = null;
-    }
-
-#if UNITY_EDITOR
-    private void OnDisable()
-    {
-        _maskableGraphic.onCullStateChanged.RemoveAllListeners();
-    }
-#endif
 }

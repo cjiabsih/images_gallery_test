@@ -11,8 +11,9 @@ public class GalleryManager : MonoBehaviour
     {
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
         Application.targetFrameRate = 60;
-        
+
         _scrollRect = GetComponent<ScrollRect>();
+
         if (GameSessionData.CashedTextures == null)
         {
             GameSessionData.CashedTextures = new Texture2D[Constants.ImagesCount];

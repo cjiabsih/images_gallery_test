@@ -1,3 +1,5 @@
+using System.Collections;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace DefaultNamespace
@@ -9,13 +11,11 @@ namespace DefaultNamespace
 
         public static void LoadGalleryScene()
         {
-            OrientationUtils.SetGalleryOrientation();
             SceneManager.LoadScene(GallerySceneName);
         }
 
         public static void LoadSingleImageScene()
         {
-            OrientationUtils.SetSingleImageOrientation();
             SceneManager.LoadScene(SingleImageSceneName);
         }
     }

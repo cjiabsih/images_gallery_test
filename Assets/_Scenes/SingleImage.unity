@@ -500,6 +500,7 @@ GameObject:
   - component: {fileID: 1623501827}
   - component: {fileID: 1623501830}
   - component: {fileID: 1623501831}
+  - component: {fileID: 1623501832}
   - component: {fileID: 1623501829}
   - component: {fileID: 1623501828}
   m_Layer: 5
@@ -591,6 +592,18 @@ MonoBehaviour:
   onOrientationChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1623501832
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1623501826}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54f9bd49b0db42618afd8d6d4e2e7632, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1822315305
 GameObject:
   m_ObjectHideFlags: 0

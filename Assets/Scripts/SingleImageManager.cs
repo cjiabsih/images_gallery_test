@@ -1,4 +1,5 @@
-using System;
+using System.Collections;
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,70 +16,84 @@ namespace DefaultNamespace
         private RawImage _singleImage;
         private int _textureWidth, _textureHeight;
         private Camera _mainCamera;
+        private Texture2D _currentTexture;
 
         private void Awake()
         {
             _singleImage = GetComponent<RawImage>();
             _mainCamera = Camera.main;
+           
+            _currentTexture = GetTexture();
+            GetComponent<RectTransform>().sizeDelta = new Vector2(_textureWidth, _textureHeight);
+            
+            ChangeCanvasOrientation(Input.deviceOrientation);
+            orientationManager.onOrientationChanged.AddListener(ChangeCanvasOrientation);
         }
 
         private void Start()
         {
-            SetTexture();
-            GetComponent<RectTransform>().sizeDelta = new Vector2(_textureWidth, _textureHeight);
-
-            ChangeCanvasScaler(DeviceOrientation.Portrait);
+            SetTexture(_currentTexture);
         }
 
-        private void OnEnable()
+        private Texture2D GetTexture()
         {
-            orientationManager.onOrientationChanged.AddListener(ChangeCanvasScaler);
-        }
-
-        private void OnDisable()
-        {
-            orientationManager.onOrientationChanged.RemoveListener(ChangeCanvasScaler);
-        }
-
-        private void SetTexture()
-        {
-            SetTexture(GameSessionData.SingleImageId < 0
+            Texture2D texture = GameSessionData.SingleImageId < 0
                 ? testTexture
-                : GameSessionData.CashedTextures[GameSessionData.SingleImageId]);
+                : GameSessionData.CashedTextures[GameSessionData.SingleImageId];
+            _textureWidth = texture.width;
+            _textureHeight = texture.height;
+
+            return texture;
         }
 
         private void SetTexture(Texture2D texture)
         {
-            _textureWidth = texture.width;
-            _textureHeight = texture.height;
-
             _singleImage.texture = texture;
+
+            _singleImage.DOFade(1f, 0.1f);
         }
 
-        private void ChangeCanvasScaler(DeviceOrientation orientation)
+        private void ChangeCanvasOrientation(DeviceOrientation orientation)
         {
-            Debug.Log("Change canvas " + orientation);
             if (orientation == DeviceOrientation.Unknown ||
                 orientation == DeviceOrientation.Portrait ||
                 orientation == DeviceOrientation.PortraitUpsideDown)
             {
-                Debug.Log($"ref resolution " + new Vector2(_textureWidth, _textureWidth / _mainCamera.aspect));
                 singleImageCanvasScaler.referenceResolution =
                     new Vector2(_textureWidth, _textureWidth / _mainCamera.aspect);
                 singleImageCanvasScaler.matchWidthOrHeight = 0f;
+
+                Screen.orientation = ScreenOrientation.Portrait;
             }
             else if (orientation == DeviceOrientation.LandscapeLeft ||
                      orientation == DeviceOrientation.LandscapeRight)
             {
-                Debug.Log($"ref resolution " + new Vector2(_textureHeight * _mainCamera.aspect, _textureHeight));
                 singleImageCanvasScaler.referenceResolution =
-                    new Vector2(_textureHeight * _mainCamera.aspect, _textureHeight);
+                    new Vector2(_textureHeight / _mainCamera.aspect, _textureHeight);
                 singleImageCanvasScaler.matchWidthOrHeight = 1f;
+
+                Screen.orientation = (ScreenOrientation) orientation;
             }
         }
 
         public void OnBackButtonClick()
         {
+            orientationManager.onOrientationChanged.RemoveListener(ChangeCanvasOrientation);
+
+            Screen.orientation = OrientationUtils.GalleryScreenOrientation;
+            StartCoroutine(LoadSceneWhenOrientationChanged(ScreenOrientation.Portrait));
+        }
+        
+        private IEnumerator LoadSceneWhenOrientationChanged(ScreenOrientation orientation)
+        {
+            bool isReady = Screen.orientation == orientation;
+            while (!isReady)
+            {
+                isReady = Screen.orientation == orientation;
+                yield return null;
+            }
+
+            yield return null;
             SceneUtils.LoadGalleryScene();
         }
     }

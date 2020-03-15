@@ -11,8 +11,7 @@ namespace DefaultNamespace
 
         private void Awake()
         {
-            _currentOrientation = DeviceOrientation.Portrait;
-            onOrientationChanged = new DeviceOrientationChangeEvent();
+            _currentOrientation = Input.deviceOrientation;
         }
 
         private void Update()
